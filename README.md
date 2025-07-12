@@ -71,6 +71,15 @@ A robust and secure wallet API built with Django REST Framework, featuring JWT a
    - Swagger Documentation: http://localhost:8000/swagger/
    - Admin Interface: http://localhost:8000/admin/
 
+6. **Using JWT Authentication in Swagger**
+   - After running the project, register a user using the `/api/v1/auth/register/` endpoint
+   - Then login the user using `/api/v1/auth/login/` endpoint
+   - Copy the access token from the response
+   - In Swagger UI, click the "Authorize" button (lock icon)
+   - Set the token as `Bearer <your_access_token>` (include "Bearer " prefix)
+   - Click "Authorize" to save
+   - Now you will be able to execute all authenticated routes
+
 **Useful Docker Commands:**
 ```bash
    # View logs
@@ -134,6 +143,15 @@ A robust and secure wallet API built with Django REST Framework, featuring JWT a
    - API Base URL: http://localhost:8000/api/v1/
    - Swagger Documentation: http://localhost:8000/swagger/
    - Admin Interface: http://localhost:8000/admin/
+
+7. **Using JWT Authentication in Swagger**
+   - After running the project, register a user using the `/api/v1/auth/register/` endpoint
+   - Then login the user using `/api/v1/auth/login/` endpoint
+   - Copy the access token from the response
+   - In Swagger UI, click the "Authorize" button (lock icon)
+   - Set the token as `Bearer <your_access_token>` (include "Bearer " prefix)
+   - Click "Authorize" to save
+   - Now you will be able to execute all authenticated routes
 
 **Local Development Features:**
 - ✅ Uses SQLite database (no PostgreSQL needed)
