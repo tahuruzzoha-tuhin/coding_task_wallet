@@ -1,0 +1,94 @@
+services:
+  wallet.task.db:
+    image: postgres:15
+    container_name: wallet.task.db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=wallet_db
+      - POSTGRES_USER=wallet_user
+      - POSTGRES_PASSWORD=wallet_password
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wallet_user -d wallet_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - common.network
+
+  wallet.task.redis:
+    image: redis:7-alpine
+    container_name: wallet.task.redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - common.network
+
+  wallet.task.backend:
+    container_name: wallet.task.backend
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - DJANGO_SETTINGS_MODULE=mysite.settings
+      - POSTGRES_DB=wallet_db
+      - POSTGRES_USER=wallet_user
+      - POSTGRES_PASSWORD=wallet_password
+      - POSTGRES_HOST=wallet.task.db
+      - POSTGRES_PORT=5432
+      - REDIS_URL=redis://wallet.task.redis:6379/0
+    depends_on:
+      wallet.task.db:
+        condition: service_healthy
+      wallet.task.redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - common.network
+
+  wallet.task.celery:
+    container_name: wallet.task.celery
+    build: .
+    command: celery -A mysite worker -l info
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=1
+      - DJANGO_SETTINGS_MODULE=mysite.settings
+      - POSTGRES_DB=wallet_db
+      - POSTGRES_USER=wallet_user
+      - POSTGRES_PASSWORD=wallet_password
+      - POSTGRES_HOST=wallet.task.db
+      - POSTGRES_PORT=5432
+      - REDIS_URL=redis://wallet.task.redis:6379/0
+    depends_on:
+      - wallet.task.db
+      - wallet.task.redis
+    networks:
+      - common.network
+
+volumes:
+  postgres_data:
+  redis_data: 
+
+
+networks:
+  common.network:
+    external: true
